@@ -1,0 +1,128 @@
+alias: Meshtastic - !command
+description: For watching any channel/chat for !commands to do automation on
+triggers:
+  - trigger: event
+    event_type: meshtastic_api_text_message
+    alias: When node sees a message
+conditions:
+  - alias: A command is heard
+    condition: or
+    conditions:
+      - alias: "!CanUHearMe"
+        condition: template
+        value_template: >-
+          {{ (trigger.event.data.data.message | lower).startswith('!canuhearme')
+          }}
+        enabled: true
+      - alias: "!Test"
+        condition: template
+        value_template: "{{ (trigger.event.data.data.message | lower).startswith('!test') }}"
+        enabled: true
+actions:
+  - alias: What Command?
+    choose:
+      - conditions:
+          - alias: "!CanUHearMe"
+            condition: template
+            value_template: >-
+              {{ (trigger.event.data.data.message |
+              lower).startswith('!canuhearme') }}
+            enabled: true
+        sequence:
+          - alias: Where?
+            choose:
+              - conditions:
+                  - alias: Channel 0 = LongFast
+                    condition: template
+                    value_template: >-
+                      {{ trigger.event.data.data.to.channel | regex_search('0')
+                      }}
+                    enabled: true
+                sequence:
+                  - alias: LongFast
+                    sequence:
+                      - delay:
+                          hours: 0
+                          minutes: 0
+                          seconds: 5
+                          milliseconds: 0
+                      - action: notify.mobile_app_bryan_s_s21
+                        metadata: {}
+                        data:
+                          title: "Meshtastic LongFast:"
+                          message: >-
+                            {{ trigger.event.data.data.from }}:{{
+                            trigger.event.data.data.message }}
+                      - alias: 10-4
+                        action: meshtastic.broadcast_channel_message
+                        metadata: {}
+                        data:
+                          ack: true
+                          channel: meshtastic.gateway_ffg1_channel_longfast
+                          message: |-
+                            10-4 Ack
+                            Responding to: {{ trigger.event.data.data.from }}
+                  - delay:
+                      hours: 0
+                      minutes: 0
+                      seconds: 15
+                      milliseconds: 0
+              - conditions:
+                  - alias: Channel NULL = DirectMessage
+                    condition: template
+                    value_template: "{{ trigger.event.data.data.to.channel is none }}"
+                    enabled: true
+                sequence:
+                  - delay:
+                      hours: 0
+                      minutes: 0
+                      seconds: 5
+                      milliseconds: 0
+                    enabled: false
+                  - alias: DM -> Telem
+                    choose:
+                      - conditions:
+                          - alias: FFG
+                            condition: template
+                            value_template: >-
+                              {{ trigger.event.data.data.message |
+                              regex_search('FFG') }}
+                            enabled: true
+                        sequence:
+                          - action: notify.mobile_app_bryan_s_s21
+                            metadata: {}
+                            data:
+                              title: "Meshtastic DM:"
+                              message: I see ya
+                    default:
+                      - alias: "Relay DM:"
+                        action: meshtastic.broadcast_channel_message
+                        metadata: {}
+                        data:
+                          ack: true
+                          channel: meshtastic.gateway_ffg1_channel_mqtt
+                          message: DM:{{ trigger.event.data.data.message }}
+                      - action: notify.mobile_app_bryan_s_s21
+                        metadata: {}
+                        data:
+                          message: MQTT DM:{{ trigger.event.data.data.message }}
+                          title: "Meshtastic MQTT:"
+                    enabled: false
+      - conditions:
+          - alias: "!test"
+            condition: template
+            value_template: >-
+              {{ (trigger.event.data.data.message | lower).startswith('!test')
+              }}
+            enabled: true
+        sequence:
+          - action: notify.mobile_app_bryan_s_s21
+            metadata: {}
+            data:
+              title: "Meshtastic Testing:"
+              message: >-
+                {{ trigger.event.data.data.from }}:{{
+                trigger.event.data.data.message }}
+        alias: "!Test"
+mode: single
+
