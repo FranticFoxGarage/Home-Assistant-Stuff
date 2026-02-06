@@ -1,0 +1,10 @@
+history stats sensor
+Entity:binary_sensor.megatron_mod_charging
+State: Off
+Type: time
+
+start:
+{{ now() - timedelta(hours=1) }}
+
+end:
+{{ now() }}
