@@ -1,0 +1,9 @@
+Entity:binary_sensor.megatron_mod_charging
+State: on, unavailable, unknown
+Type: time
+
+start:
+{{ now() - timedelta(days=4) }}
+
+end:
+{{ now() }}
