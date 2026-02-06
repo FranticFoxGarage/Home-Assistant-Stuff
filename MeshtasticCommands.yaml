@@ -1,51 +1,110 @@
-alias: Meshtastic - !command
+alias: Meshtastic - !Command
 description: For watching any channel/chat for !commands to do automation on
 triggers:
   - trigger: event
     event_type: meshtastic_api_text_message
     alias: When node sees a message
 conditions:
-  - alias: A command is heard
-    condition: or
+  - condition: and
     conditions:
-      - alias: "!CanUHearMe"
-        condition: template
-        value_template: >-
-          {{ (trigger.event.data.data.message | lower).startswith('!canuhearme')
-          }}
-        enabled: true
-      - alias: "!Test"
-        condition: template
-        value_template: "{{ (trigger.event.data.data.message | lower).startswith('!test') }}"
-        enabled: true
-actions:
-  - alias: What Command?
-    choose:
-      - conditions:
+      - alias: A command is heard
+        condition: or
+        conditions:
           - alias: "!CanUHearMe"
             condition: template
             value_template: >-
               {{ (trigger.event.data.data.message |
               lower).startswith('!canuhearme') }}
             enabled: true
+          - alias: "!CanYouHearMe"
+            condition: template
+            value_template: >-
+              {{ (trigger.event.data.data.message |
+              lower).startswith('!canyouhearme') }}
+            enabled: true
+          - alias: "!Test"
+            condition: template
+            value_template: >-
+              {{ (trigger.event.data.data.message | lower).startswith('!test')
+              }}
+            enabled: true
+      - condition: not
+        conditions:
+          - alias: "From Gateway: 2661116148"
+            condition: template
+            value_template: "{{ trigger.event.data.data.from | regex_search('2661116148') }}"
+            enabled: true
+          - alias: "From Gateway: 2661091416"
+            condition: template
+            value_template: "{{ trigger.event.data.data.from | regex_search('2661091416') }}"
+            enabled: true
+        alias: Command did not orginate from Gateways
+    alias: Command is heard and did not come from a gateway
+actions:
+  - alias: What Command?
+    choose:
+      - conditions:
+          - condition: or
+            conditions:
+              - alias: "!CanUHearMe"
+                condition: template
+                value_template: >-
+                  {{ (trigger.event.data.data.message |
+                  lower).startswith('!canuhearme') }}
+                enabled: true
+              - alias: "!CanYouHearMe"
+                condition: template
+                value_template: >-
+                  {{ (trigger.event.data.data.message |
+                  lower).startswith('!canyouhearme') }}
+                enabled: true
+            alias: "!CanUHearMe"
         sequence:
           - alias: Where?
             choose:
               - conditions:
-                  - alias: Channel 0 = LongFast
-                    condition: template
-                    value_template: >-
-                      {{ trigger.event.data.data.to.channel | regex_search('0')
-                      }}
-                    enabled: true
+                  - condition: and
+                    conditions:
+                      - alias: Long Fast
+                        condition: or
+                        conditions:
+                          - alias: "Gateway: 2661116148"
+                            condition: and
+                            conditions:
+                              - alias: "Gateway: 2661116148"
+                                condition: template
+                                value_template: >-
+                                  {{ trigger.event.data.data.gateway |
+                                  regex_search('2661116148') }}
+                                enabled: true
+                              - alias: Channel 1 = LongFast
+                                condition: template
+                                value_template: >-
+                                  {{ trigger.event.data.data.to.channel |
+                                  regex_search('1') }}
+                                enabled: true
+                          - alias: "Gateway: 2661091416"
+                            condition: and
+                            conditions:
+                              - alias: "Gateway: 2661091416"
+                                condition: template
+                                value_template: >-
+                                  {{ trigger.event.data.data.gateway |
+                                  regex_search('2661091416') }}
+                                enabled: true
+                              - alias: Channel 0 = LongFast
+                                condition: template
+                                value_template: >-
+                                  {{ trigger.event.data.data.to.channel |
+                                  regex_search('0') }}
+                                enabled: true
+                      - alias: No MQTT Local Only
+                        condition: template
+                        value_template: "{{ trigger.event.origin| regex_search('LOCAL') }}"
+                        enabled: true
                 sequence:
                   - alias: LongFast
                     sequence:
-                      - delay:
-                          hours: 0
-                          minutes: 0
-                          seconds: 5
-                          milliseconds: 0
                       - action: notify.mobile_app_bryan_s_s21
                         metadata: {}
                         data:
@@ -62,52 +121,114 @@ actions:
                           message: |-
                             10-4 Ack
                             Responding to: {{ trigger.event.data.data.from }}
-                  - delay:
-                      hours: 0
-                      minutes: 0
-                      seconds: 15
-                      milliseconds: 0
+                      - delay:
+                          hours: 0
+                          minutes: 0
+                          seconds: 15
+                          milliseconds: 0
+                alias: Channel 1 & 0 = LongFast
               - conditions:
-                  - alias: Channel NULL = DirectMessage
-                    condition: template
-                    value_template: "{{ trigger.event.data.data.to.channel is none }}"
-                    enabled: true
-                sequence:
-                  - delay:
-                      hours: 0
-                      minutes: 0
-                      seconds: 5
-                      milliseconds: 0
-                    enabled: false
-                  - alias: DM -> Telem
-                    choose:
-                      - conditions:
-                          - alias: FFG
+                  - condition: or
+                    conditions:
+                      - alias: "Gateway: 2661116148"
+                        condition: and
+                        conditions:
+                          - alias: "Gateway: 2661116148"
                             condition: template
                             value_template: >-
-                              {{ trigger.event.data.data.message |
-                              regex_search('FFG') }}
+                              {{ trigger.event.data.data.gateway |
+                              regex_search('2661116148') }}
                             enabled: true
-                        sequence:
-                          - action: notify.mobile_app_bryan_s_s21
-                            metadata: {}
-                            data:
-                              title: "Meshtastic DM:"
-                              message: I see ya
-                    default:
-                      - alias: "Relay DM:"
+                          - alias: Channel 0 = GothHouse
+                            condition: template
+                            value_template: >-
+                              {{ trigger.event.data.data.to.channel |
+                              regex_search('0') }}
+                            enabled: true
+                      - alias: "Gateway: 2661091416"
+                        condition: and
+                        conditions:
+                          - alias: "Gateway: 2661091416"
+                            condition: template
+                            value_template: >-
+                              {{ trigger.event.data.data.gateway |
+                              regex_search('2661091416') }}
+                            enabled: true
+                          - alias: Channel 2 = GothHouse
+                            condition: template
+                            value_template: >-
+                              {{ trigger.event.data.data.to.channel |
+                              regex_search('2') }}
+                            enabled: true
+                    alias: GothHouse
+                sequence:
+                  - alias: 10-4
+                    action: meshtastic.broadcast_channel_message
+                    metadata: {}
+                    data:
+                      ack: true
+                      channel: meshtastic.gateway_ffga_channel_gothhouse
+                      message: |-
+                        10-4 Ack
+                        Responding to: {{ trigger.event.data.data.from }}
+                  - action: notify.mobile_app_bryan_s_s21
+                    metadata: {}
+                    data:
+                      title: "Meshtastic GothHouse:"
+                      message: >-
+                        {{ trigger.event.data.data.from }}:{{
+                        trigger.event.data.data.message }}
+                alias: Channel 0 & 2 = GothHouse
+              - conditions:
+                  - condition: or
+                    conditions:
+                      - alias: "Gateway: 2661116148"
+                        condition: and
+                        conditions:
+                          - alias: "Gateway: 2661116148"
+                            condition: template
+                            value_template: >-
+                              {{ trigger.event.data.data.gateway |
+                              regex_search('2661116148') }}
+                            enabled: true
+                          - alias: Channel 3 = Kentucky
+                            condition: template
+                            value_template: >-
+                              {{ trigger.event.data.data.to.channel |
+                              regex_search('3') }}
+                            enabled: true
+                      - alias: "Gateway: 2661091416"
+                        condition: and
+                        conditions:
+                          - alias: "Gateway: 2661091416"
+                            condition: template
+                            value_template: >-
+                              {{ trigger.event.data.data.gateway |
+                              regex_search('2661091416') }}
+                            enabled: true
+                          - alias: Channel 3 = Kentucky
+                            condition: template
+                            value_template: >-
+                              {{ trigger.event.data.data.to.channel |
+                              regex_search('3') }}
+                            enabled: true
+                    alias: Channel 3 = Kentucky
+                sequence:
+                  - sequence:
+                      - alias: 10-4
                         action: meshtastic.broadcast_channel_message
                         metadata: {}
                         data:
                           ack: true
-                          channel: meshtastic.gateway_ffg1_channel_mqtt
-                          message: DM:{{ trigger.event.data.data.message }}
-                      - action: notify.mobile_app_bryan_s_s21
-                        metadata: {}
-                        data:
-                          message: MQTT DM:{{ trigger.event.data.data.message }}
-                          title: "Meshtastic MQTT:"
-                    enabled: false
+                          channel: meshtastic.gateway_ffga_channel_kentucky
+                          message: |-
+                            10-4 Ack
+                            Responding to: {{ trigger.event.data.data.from }}
+                      - delay:
+                          hours: 0
+                          minutes: 0
+                          seconds: 5
+                          milliseconds: 0
       - conditions:
           - alias: "!test"
             condition: template
@@ -125,4 +246,3 @@ actions:
                 trigger.event.data.data.message }}
         alias: "!Test"
 mode: single
-
