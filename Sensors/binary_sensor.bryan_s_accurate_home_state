@@ -1,0 +1,29 @@
+{% set now_ts = now().timestamp() %}
+
+{% set phone = states('device_tracker.bryan_s_phone') %}
+{% set tracker = states('device_tracker.meshtastic_ffga_2102048672_node_position') %}
+
+{% set batt = states('sensor.meshtastic_ffga_2102048672_device_battery_level') | int(0) %}
+{% set batt_ok = batt >= 30 %}
+
+{% set phone_away_long =
+  phone == 'away'
+  and (now_ts - states.device_tracker.bryan_s_phone.last_changed.timestamp()) > 1800
+%}
+
+{% set tracker_away_long =
+  tracker == 'away'
+  and (now_ts - states.device_tracker.meshtastic_ffga_2102048672_node_position.last_changed.timestamp()) > 1800
+%}
+
+{% if phone_away_long or tracker_away_long %}
+  true
+{% elif tracker == 'home' and batt_ok %}
+  true
+{% elif phone == 'home' and tracker == 'away' and batt_ok %}
+  false
+{% elif phone == 'home' and tracker == 'home' %}
+  true
+{% else %}
+  false
+{% endif %}
