@@ -1,0 +1,170 @@
+alias: Megatron Cleaning Schedule
+description: ""
+triggers:
+  - entity_id:
+      - binary_sensor.REDACTED_s_accurate_home_state
+      - binary_sensor.bryan_s_accurate_home_state
+    to:
+      - "off"
+    id: person_left
+    trigger: state
+  - entity_id:
+      - binary_sensor.bryan_s_accurate_home_state
+      - binary_sensor.REDACTED_s_accurate_home_state
+    to:
+      - "on"
+    id: person_arrived
+    trigger: state
+  - at: "20:30:00"
+    id: "0830"
+    trigger: time
+  - at: "10:00:00"
+    id: "1000"
+    trigger: time
+  - entity_id:
+      - sensor.vacuum_state
+    to:
+      - Needs Cleaning
+    id: needs_cleaning
+    trigger: state
+conditions: []
+actions:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id:
+              - person_left
+        sequence:
+          - if:
+              - alias: Needs to clean and no one is home
+                condition: and
+                conditions:
+                  - condition: state
+                    entity_id: binary_sensor.bryan_s_accurate_home_state
+                    state: "off"
+                  - condition: state
+                    entity_id: binary_sensor.REDACTED_s_accurate_home_state
+                    state: "off"
+                  - condition: state
+                    entity_id: binary_sensor.megatron_mod_charging
+                    state: "on"
+                  - condition: state
+                    entity_id: sensor.vacuum_state
+                    state:
+                      - Needs Cleaning
+            then:
+              - action: button.press
+                target:
+                  entity_id: button.megatron_mod_clean_pause
+                data: {}
+      - conditions:
+          - condition: trigger
+            id:
+              - person_arrived
+        sequence:
+          - if:
+              - condition: state
+                entity_id: binary_sensor.megatron_mod_charging
+                state: "off"
+            then:
+              - action: button.press
+                target:
+                  entity_id: button.megatron_mod_stop
+                data: {}
+      - conditions:
+          - condition: trigger
+            id:
+              - "0830"
+        sequence:
+          - if:
+              - alias: Both Home Morning Clean
+                condition: and
+                conditions:
+                  - condition: state
+                    entity_id: binary_sensor.bryan_s_accurate_home_state
+                    state: "on"
+                  - condition: state
+                    entity_id: binary_sensor.REDACTED_s_accurate_home_state
+                    state: "on"
+                  - condition: state
+                    entity_id: sensor.vacuum_state
+                    state:
+                      - Needs Cleaning
+                  - condition: state
+                    entity_id: binary_sensor.megatron_mod_charging
+                    state: "on"
+                  - condition: time
+                    weekday:
+                      - mon
+                      - tue
+                      - wed
+                      - thu
+                      - fri
+            then:
+              - action: button.press
+                target:
+                  entity_id: button.megatron_mod_clean_pause
+                data: {}
+      - conditions:
+          - condition: trigger
+            id:
+              - "1000"
+        sequence:
+          - if:
+              - alias: Solo Evening Clean
+                condition: and
+                conditions:
+                  - condition: state
+                    entity_id: binary_sensor.bryan_s_accurate_home_state
+                    state: "on"
+                  - condition: state
+                    entity_id: binary_sensor.REDACTED_s_accurate_home_state
+                    state:
+                      - "off"
+                  - condition: state
+                    entity_id: sensor.vacuum_state
+                    state:
+                      - Needs Cleaning
+                  - condition: state
+                    entity_id: binary_sensor.megatron_mod_charging
+                    state: "on"
+                  - condition: time
+                    weekday:
+                      - mon
+                      - tue
+                      - wed
+                      - thu
+                      - fri
+            then:
+              - action: button.press
+                target:
+                  entity_id: button.megatron_mod_clean_pause
+                data: {}
+      - conditions:
+          - condition: trigger
+            id:
+              - needs_cleaning
+        sequence:
+          - if:
+              - alias: Needs to clean and no one is home
+                condition: and
+                conditions:
+                  - condition: state
+                    entity_id: binary_sensor.bryan_s_accurate_home_state
+                    state: "off"
+                  - condition: state
+                    entity_id: binary_sensor.REDACTED_s_accurate_home_state
+                    state: "off"
+                  - condition: state
+                    entity_id: binary_sensor.megatron_mod_charging
+                    state: "on"
+                  - condition: state
+                    entity_id: sensor.vacuum_state
+                    state:
+                      - Needs Cleaning
+            then:
+              - action: button.press
+                target:
+                  entity_id: button.megatron_mod_clean_pause
+                data: {}
+mode: single
