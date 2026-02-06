@@ -1,0 +1,12 @@
+{% set CLEAN_OFF_MINUTES = 15 %}
+{% set UNCLEAN_ON_DAYS = 3 %}
+{% set off_charger_hours = states('sensor.vacuum_time_off_charger') | float(0) %}
+{% set on_dock_hours = states('sensor.vacuum_time_on_dock') | float(0) %}
+
+{% if off_charger_hours >= (CLEAN_OFF_MINUTES / 60) %}
+  Is Clean
+{% elif on_dock_hours >= (UNCLEAN_ON_DAYS * 24) %}
+  Needs Cleaning
+{% else %}
+  {{ states('binary_sensor.your_sensor_name') | default('Needs Cleaning') }}
+{% endif %}
