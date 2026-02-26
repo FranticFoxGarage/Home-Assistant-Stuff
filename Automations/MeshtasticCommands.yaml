@@ -13,20 +13,26 @@ conditions:
           - alias: "!CanUHearMe"
             condition: template
             value_template: >-
-              {{ (trigger.event.data.data.message |
-              lower).startswith('!canuhearme') }}
+              {{ trigger.event.data.data.message | regex_search('!canuhearme',
+              ignorecase=True) }}
             enabled: true
           - alias: "!CanYouHearMe"
             condition: template
             value_template: >-
-              {{ (trigger.event.data.data.message |
-              lower).startswith('!canyouhearme') }}
+              {{ trigger.event.data.data.message | regex_search('!canyouhearme',
+              ignorecase=True) }}
             enabled: true
           - alias: "!Test"
             condition: template
             value_template: >-
-              {{ (trigger.event.data.data.message | lower).startswith('!test')
-              }}
+              {{ trigger.event.data.data.message | regex_search('!test',
+              ignorecase=True) }}
+            enabled: true
+          - alias: "!Joke"
+            condition: template
+            value_template: >-
+              {{ trigger.event.data.data.message | regex_search('!joke',
+              ignorecase=True) }}
             enabled: true
       - condition: not
         conditions:
@@ -49,14 +55,14 @@ actions:
               - alias: "!CanUHearMe"
                 condition: template
                 value_template: >-
-                  {{ (trigger.event.data.data.message |
-                  lower).startswith('!canuhearme') }}
+                  {{ trigger.event.data.data.message |
+                  regex_search('!canuhearme', ignorecase=True) }}
                 enabled: true
               - alias: "!CanYouHearMe"
                 condition: template
                 value_template: >-
-                  {{ (trigger.event.data.data.message |
-                  lower).startswith('!canyouhearme') }}
+                  {{ trigger.event.data.data.message |
+                  regex_search('!canyouhearme', ignorecase=True) }}
                 enabled: true
             alias: "!CanUHearMe"
         sequence:
@@ -233,8 +239,8 @@ actions:
           - alias: "!test"
             condition: template
             value_template: >-
-              {{ (trigger.event.data.data.message | lower).startswith('!test')
-              }}
+              {{ trigger.event.data.data.message | regex_search('!test',
+              ignorecase=True) }}
             enabled: true
         sequence:
           - action: notify.mobile_app_bryan_s_s21
@@ -245,4 +251,230 @@ actions:
                 {{ trigger.event.data.data.from }}:{{
                 trigger.event.data.data.message }}
         alias: "!Test"
+      - conditions:
+          - alias: "!Joke"
+            condition: template
+            value_template: >-
+              {{ trigger.event.data.data.message | regex_search('!joke',
+              ignorecase=True) }}
+            enabled: true
+        sequence:
+          - variables:
+              jokes:
+                - >-
+                  Q: Why was six afraid of seven? A: It wasn't. Numbers aren't
+                  sentient and are incapable of feeling fear.
+                - "Q: What's blue and smells like red paint? A: Blue paint."
+                - A guy walks into a bar. He gets a drink and leaves.
+                - Knock knock. Who's there? Tom. Can you let me in?
+                - >-
+                  A priest, a rabbi, and an imam walk into a bar. The bartender
+                  is happy because it's the most customers he's had in a week.
+                - >-
+                  Q: What did the farmer say when he lost his tractor? A:
+                  Where's my tractor?
+                - >-
+                  Q: What did one Spaniard say to the other? A: I don't know, I
+                  don't speak Spanish.
+                - >-
+                  Two muffins are in an oven. One says Wow its hot in here. The
+                  other says Sure is. Probably about 350 degrees.
+                - >-
+                  Q: What do you call a pencil sharpener that can't sharpen
+                  pencils? A: Broken.
+                - >-
+                  Q: Want to hear something that'll make you smile? A: Your
+                  facial muscles.
+                - "Q: Where was the Constitution signed? A: The bottom."
+                - "Q: What do you call a joke that isn't funny? A: A sentence."
+                - >-
+                  A horse walks into a bar. Several people leave as they spot
+                  the potential danger of the situation.
+                - >-
+                  Q: Why did the girl drop her ice cream? A: She tripped over a
+                  pothole.
+                - >-
+                  Q: Why did Josh get sick after eating too much ice cream? A:
+                  He was lactose intolerant.
+                - Mary had a little lamb. And the doctor fainted.
+                - >-
+                  Q: What did the lawyer say to the other lawyer? A: We are both
+                  lawyers.
+                - >-
+                  Q: What would George Washington do if he were alive today? A:
+                  Scream and scratch at the top of his coffin.
+                - >-
+                  You can pick your nose and you can pick your friends. But you
+                  can't rob a bank. That's a felony.
+                - >-
+                  I ain't sayin she's a gold digger. But she did move to
+                  California in 1849.
+                - >-
+                  Q: What do you call a medical student who graduated last in
+                  their class? A: Doctor.
+                - >-
+                  Q: What do you call a homing pigeon that can't find its way
+                  home? A: A pigeon.
+                - >-
+                  Q: What's green and has wheels? A: Grass. I lied about the
+                  wheels.
+                - >-
+                  A grasshopper walks into a bar. The bartender says hey we have
+                  a drink named after you! The grasshopper replies What, you
+                  have a drink called Steve?
+                - >-
+                  Q: Why is there no aspirin in the rainforest? A: It wouldn't
+                  be financially viable to sell pharmaceuticals in a vastly
+                  unpopulated rainforest.
+                - >-
+                  Q: Why did the chicken cross the road? A: Chickens lack the
+                  cognitive ability to reason. It was random.
+              joke: "{{ jokes | random }}"
+          - alias: Where?
+            choose:
+              - conditions:
+                  - condition: and
+                    conditions:
+                      - alias: Long Fast
+                        condition: or
+                        conditions:
+                          - alias: "Gateway: 2661116148"
+                            condition: and
+                            conditions:
+                              - alias: "Gateway: 2661116148"
+                                condition: template
+                                value_template: >-
+                                  {{ trigger.event.data.data.gateway |
+                                  regex_search('2661116148') }}
+                                enabled: true
+                              - alias: Channel 1 = LongFast
+                                condition: template
+                                value_template: >-
+                                  {{ trigger.event.data.data.to.channel |
+                                  regex_search('1') }}
+                                enabled: true
+                          - alias: "Gateway: 2661091416"
+                            condition: and
+                            conditions:
+                              - alias: "Gateway: 2661091416"
+                                condition: template
+                                value_template: >-
+                                  {{ trigger.event.data.data.gateway |
+                                  regex_search('2661091416') }}
+                                enabled: true
+                              - alias: Channel 0 = LongFast
+                                condition: template
+                                value_template: >-
+                                  {{ trigger.event.data.data.to.channel |
+                                  regex_search('0') }}
+                                enabled: true
+                      - alias: No MQTT Local Only
+                        condition: template
+                        value_template: "{{ trigger.event.origin| regex_search('LOCAL') }}"
+                        enabled: true
+                sequence:
+                  - alias: Send Joke to LongFast
+                    action: meshtastic.broadcast_channel_message
+                    metadata: {}
+                    data:
+                      ack: true
+                      channel: meshtastic.gateway_ffg1_channel_longfast
+                      message: "{{ joke }}"
+                  - delay:
+                      hours: 0
+                      minutes: 0
+                      seconds: 15
+                      milliseconds: 0
+                alias: Channel 1 & 0 = LongFast
+              - conditions:
+                  - condition: or
+                    conditions:
+                      - alias: "Gateway: 2661116148"
+                        condition: and
+                        conditions:
+                          - alias: "Gateway: 2661116148"
+                            condition: template
+                            value_template: >-
+                              {{ trigger.event.data.data.gateway |
+                              regex_search('2661116148') }}
+                            enabled: true
+                          - alias: Channel 0 = GothHouse
+                            condition: template
+                            value_template: >-
+                              {{ trigger.event.data.data.to.channel |
+                              regex_search('0') }}
+                            enabled: true
+                      - alias: "Gateway: 2661091416"
+                        condition: and
+                        conditions:
+                          - alias: "Gateway: 2661091416"
+                            condition: template
+                            value_template: >-
+                              {{ trigger.event.data.data.gateway |
+                              regex_search('2661091416') }}
+                            enabled: true
+                          - alias: Channel 2 = GothHouse
+                            condition: template
+                            value_template: >-
+                              {{ trigger.event.data.data.to.channel |
+                              regex_search('2') }}
+                            enabled: true
+                    alias: GothHouse
+                sequence:
+                  - alias: Send Joke to GothHouse
+                    action: meshtastic.broadcast_channel_message
+                    metadata: {}
+                    data:
+                      ack: true
+                      channel: meshtastic.gateway_ffga_channel_gothhouse
+                      message: "{{ joke }}"
+                alias: Channel 0 & 2 = GothHouse
+              - conditions:
+                  - condition: or
+                    conditions:
+                      - alias: "Gateway: 2661116148"
+                        condition: and
+                        conditions:
+                          - alias: "Gateway: 2661116148"
+                            condition: template
+                            value_template: >-
+                              {{ trigger.event.data.data.gateway |
+                              regex_search('2661116148') }}
+                            enabled: true
+                          - alias: Channel 3 = Kentucky
+                            condition: template
+                            value_template: >-
+                              {{ trigger.event.data.data.to.channel |
+                              regex_search('3') }}
+                            enabled: true
+                      - alias: "Gateway: 2661091416"
+                        condition: and
+                        conditions:
+                          - alias: "Gateway: 2661091416"
+                            condition: template
+                            value_template: >-
+                              {{ trigger.event.data.data.gateway |
+                              regex_search('2661091416') }}
+                            enabled: true
+                          - alias: Channel 3 = Kentucky
+                            condition: template
+                            value_template: >-
+                              {{ trigger.event.data.data.to.channel |
+                              regex_search('3') }}
+                            enabled: true
+                    alias: Channel 3 = Kentucky
+                sequence:
+                  - alias: Send Joke to Kentucky
+                    action: meshtastic.broadcast_channel_message
+                    metadata: {}
+                    data:
+                      ack: true
+                      channel: meshtastic.gateway_ffga_channel_kentucky
+                      message: "{{ joke }}"
+                  - delay:
+                      hours: 0
+                      minutes: 0
+                      seconds: 5
+                      milliseconds: 0
+        alias: "!Joke"
 mode: single
